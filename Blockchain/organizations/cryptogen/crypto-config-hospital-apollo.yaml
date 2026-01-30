@@ -1,0 +1,13 @@
+PeerOrgs:
+  - Name: HospitalApollo
+    Domain: hospitalapollo.healthcare.com
+    EnableNodeOUs: true
+    
+    Template:
+      Count: 2  # peer0 + peer1
+      SANS:
+        - localhost
+        - 127.0.0.1
+    
+    Users:
+      Count: 1

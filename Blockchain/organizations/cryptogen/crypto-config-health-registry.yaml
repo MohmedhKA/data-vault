@@ -1,0 +1,29 @@
+OrdererOrgs:
+  - Name: HealthRegistry
+    Domain: healthregistry.healthcare.com
+    EnableNodeOUs: true 
+    
+    Specs:
+      - Hostname: orderer1
+        SANS:
+          - localhost
+          - 127.0.0.1
+          - orderer1.healthregistry.healthcare.com
+      
+      - Hostname: orderer2
+        SANS:
+          - localhost
+          - 127.0.0.1
+          - orderer2.healthregistry.healthcare.com
+      
+      - Hostname: orderer3
+        SANS:
+          - localhost
+          - 127.0.0.1
+          - orderer3.healthregistry.healthcare.com
+
+      - Hostname: orderer4
+        SANS:
+          - localhost
+          - 127.0.0.1
+          - orderer4.healthregistry.healthcare.com

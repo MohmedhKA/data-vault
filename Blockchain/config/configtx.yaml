@@ -1,0 +1,207 @@
+# ============================================================================
+# CONFIGTX.YAML - HEALTHCARE BLOCKCHAIN WITH SMARTBFT
+# ============================================================================
+
+Organizations:
+  - &HealthRegistry
+    Name: HealthRegistryMSP
+    ID: HealthRegistryMSP
+    MSPDir: ../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/msp
+    Policies:
+      Readers:
+        Type: Signature
+        Rule: "OR('HealthRegistryMSP.member')"
+      Writers:
+        Type: Signature
+        Rule: "OR('HealthRegistryMSP.member')"
+      Admins:
+        Type: Signature
+        Rule: "OR('HealthRegistryMSP.admin')"
+    OrdererEndpoints:
+      - orderer1.healthregistry.healthcare.com:7050
+      - orderer2.healthregistry.healthcare.com:8050
+      - orderer3.healthregistry.healthcare.com:9050
+      - orderer4.healthregistry.healthcare.com:10050
+
+  - &HospitalApollo
+    Name: HospitalApolloMSP
+    ID: HospitalApolloMSP
+    MSPDir: ../compose/organizations/peerOrganizations/hospitalapollo.healthcare.com/msp
+    Policies:
+      Readers:
+        Type: Signature
+        Rule: "OR('HospitalApolloMSP.admin', 'HospitalApolloMSP.peer', 'HospitalApolloMSP.client')"
+      Writers:
+        Type: Signature
+        Rule: "OR('HospitalApolloMSP.admin', 'HospitalApolloMSP.client')"
+      Admins:
+        Type: Signature
+        Rule: "OR('HospitalApolloMSP.admin')"
+      Endorsement:
+        Type: Signature
+        Rule: "OR('HospitalApolloMSP.peer')"
+    AnchorPeers:
+      - Host: peer0.hospitalapollo.healthcare.com
+        Port: 7051
+
+  - &AuditOrg
+    Name: AuditOrgMSP
+    ID: AuditOrgMSP
+    MSPDir: ../compose/organizations/peerOrganizations/auditorg.healthcare.com/msp
+    Policies:
+      Readers:
+        Type: Signature
+        Rule: "OR('AuditOrgMSP.admin', 'AuditOrgMSP.peer', 'AuditOrgMSP.client')"
+      Writers:
+        Type: Signature
+        Rule: "OR('AuditOrgMSP.admin', 'AuditOrgMSP.client')"
+      Admins:
+        Type: Signature
+        Rule: "OR('AuditOrgMSP.admin')"
+      Endorsement:
+        Type: Signature
+        Rule: "OR('AuditOrgMSP.peer')"
+    AnchorPeers:
+      - Host: peer0.auditorg.healthcare.com
+        Port: 9051
+
+# ============================================================================
+# CAPABILITIES
+# ============================================================================
+Capabilities:
+  Channel: &ChannelCapabilities
+    V3_0: true
+  Orderer: &OrdererCapabilities
+    V2_0: true
+  Application: &ApplicationCapabilities
+    V2_5: true
+
+# ============================================================================
+# APPLICATION DEFAULTS
+# ============================================================================
+Application: &ApplicationDefaults
+  Organizations:
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+    LifecycleEndorsement:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Endorsement"
+    Endorsement:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Endorsement"
+  Capabilities:
+    <<: *ApplicationCapabilities
+
+# ============================================================================
+# ORDERER DEFAULTS - SMARTBFT
+# ============================================================================
+Orderer: &OrdererDefaults
+  OrdererType: BFT
+  BatchTimeout: 500ms
+  BatchSize:
+    MaxMessageCount: 100
+    AbsoluteMaxBytes: 99 MB
+    PreferredMaxBytes: 2 MB
+
+  ConsenterMapping:
+    - ID: 1
+      Host: orderer1.healthregistry.healthcare.com
+      Port: 7050
+      MSPID: HealthRegistryMSP
+      Identity: ../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/orderers/orderer1.healthregistry.healthcare.com/msp/signcerts/orderer1.healthregistry.healthcare.com-cert.pem
+      ClientTLSCert: ../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/orderers/orderer1.healthregistry.healthcare.com/tls/server.crt
+      ServerTLSCert: ../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/orderers/orderer1.healthregistry.healthcare.com/tls/server.crt
+    - ID: 2
+      Host: orderer2.healthregistry.healthcare.com
+      Port: 8050
+      MSPID: HealthRegistryMSP
+      Identity: ../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/orderers/orderer2.healthregistry.healthcare.com/msp/signcerts/orderer2.healthregistry.healthcare.com-cert.pem
+      ClientTLSCert: ../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/orderers/orderer2.healthregistry.healthcare.com/tls/server.crt
+      ServerTLSCert: ../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/orderers/orderer2.healthregistry.healthcare.com/tls/server.crt
+    - ID: 3
+      Host: orderer3.healthregistry.healthcare.com
+      Port: 9050
+      MSPID: HealthRegistryMSP
+      Identity: ../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/orderers/orderer3.healthregistry.healthcare.com/msp/signcerts/orderer3.healthregistry.healthcare.com-cert.pem
+      ClientTLSCert: ../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/orderers/orderer3.healthregistry.healthcare.com/tls/server.crt
+      ServerTLSCert: ../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/orderers/orderer3.healthregistry.healthcare.com/tls/server.crt
+    - ID: 4
+      Host: orderer4.healthregistry.healthcare.com
+      Port: 10050
+      MSPID: HealthRegistryMSP
+      Identity: ../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/orderers/orderer4.healthregistry.healthcare.com/msp/signcerts/orderer4.healthregistry.healthcare.com-cert.pem
+      ClientTLSCert: ../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/orderers/orderer4.healthregistry.healthcare.com/tls/server.crt
+      ServerTLSCert: ../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/orderers/orderer4.healthregistry.healthcare.com/tls/server.crt
+
+  SmartBFT:
+    RequestBatchMaxCount: 100
+    RequestBatchMaxBytes: 10485760
+    RequestBatchMaxInterval: 50ms
+    IncomingMessageBufferSize: 200
+    RequestPoolSize: 400
+    RequestForwardTimeout: 2s
+    RequestComplainTimeout: 20s
+    RequestAutoRemoveTimeout: 3m0s
+    ViewChangeResendInterval: 5s
+    ViewChangeTimeout: 20s
+    LeaderHeartbeatTimeout: 1m0s
+    LeaderHeartbeatCount: 10
+    CollectTimeout: 1s
+
+  Organizations:
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+    BlockValidation:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+  Capabilities:
+    <<: *OrdererCapabilities
+
+# ============================================================================
+# CHANNEL DEFAULTS
+# ============================================================================
+Channel: &ChannelDefaults
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Admins"
+  Capabilities:
+    <<: *ChannelCapabilities
+
+# ============================================================================
+# PROFILES
+# ============================================================================
+Profiles:
+  ChannelUsingBFT:
+    <<: *ChannelDefaults
+    Orderer:
+      <<: *OrdererDefaults
+      Organizations:
+        - *HealthRegistry
+    Application:
+      <<: *ApplicationDefaults
+      Organizations:
+        - *HospitalApollo
+        - *AuditOrg

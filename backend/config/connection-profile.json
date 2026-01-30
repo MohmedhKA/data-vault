@@ -14,17 +14,9 @@
   },
   "channels": {
     "healthcare-channel": {
-      "orderers": [
-        "orderer1.healthregistry.healthcare.com"
-      ],
+      "orderers": ["orderer1.healthregistry.healthcare.com"],
       "peers": {
         "peer0.hospitalapollo.healthcare.com": {
-          "endorsingPeer": true,
-          "chaincodeQuery": true,
-          "ledgerQuery": true,
-          "eventSource": true
-        },
-        "peer0.auditorg.healthcare.com": {
           "endorsingPeer": true,
           "chaincodeQuery": true,
           "ledgerQuery": true,
@@ -36,21 +28,8 @@
   "organizations": {
     "HospitalApollo": {
       "mspid": "HospitalApolloMSP",
-      "peers": [
-        "peer0.hospitalapollo.healthcare.com"
-      ],
-      "certificateAuthorities": [
-        "ca.hospitalapollo.healthcare.com"
-      ]
-    },
-    "AuditOrg": {
-      "mspid": "AuditOrgMSP",
-      "peers": [
-        "peer0.auditorg.healthcare.com"
-      ],
-      "certificateAuthorities": [
-        "ca.auditorg.healthcare.com"
-      ]
+      "peers": ["peer0.hospitalapollo.healthcare.com"],
+      "certificateAuthorities": ["ca.hospitalapollo.healthcare.com"]
     }
   },
   "orderers": {
@@ -60,8 +39,7 @@
         "path": "../Blockchain/compose/organizations/ordererOrganizations/healthregistry.healthcare.com/orderers/orderer1.healthregistry.healthcare.com/tls/ca.crt"
       },
       "grpcOptions": {
-        "ssl-target-name-override": "orderer1.healthregistry.healthcare.com",
-        "hostnameOverride": "orderer1.healthregistry.healthcare.com"
+        "ssl-target-name-override": "orderer1.healthregistry.healthcare.com"
       }
     }
   },
@@ -72,18 +50,7 @@
         "path": "../Blockchain/compose/organizations/peerOrganizations/hospitalapollo.healthcare.com/peers/peer0.hospitalapollo.healthcare.com/tls/ca.crt"
       },
       "grpcOptions": {
-        "ssl-target-name-override": "peer0.hospitalapollo.healthcare.com",
-        "hostnameOverride": "peer0.hospitalapollo.healthcare.com"
-      }
-    },
-    "peer0.auditorg.healthcare.com": {
-      "url": "grpcs://localhost:9051",
-      "tlsCACerts": {
-        "path": "../Blockchain/compose/organizations/peerOrganizations/auditorg.healthcare.com/peers/peer0.auditorg.healthcare.com/tls/ca.crt"
-      },
-      "grpcOptions": {
-        "ssl-target-name-override": "peer0.auditorg.healthcare.com",
-        "hostnameOverride": "peer0.auditorg.healthcare.com"
+        "ssl-target-name-override": "peer0.hospitalapollo.healthcare.com"
       }
     }
   },
@@ -93,16 +60,6 @@
       "caName": "ca-hospital-apollo",
       "tlsCACerts": {
         "path": "../Blockchain/compose/organizations/peerOrganizations/hospitalapollo.healthcare.com/ca/ca.hospitalapollo.healthcare.com-cert.pem"
-      },
-      "httpOptions": {
-        "verify": false
-      }
-    },
-    "ca.auditorg.healthcare.com": {
-      "url": "https://localhost:9054",
-      "caName": "ca-audit-org",
-      "tlsCACerts": {
-        "path": "../Blockchain/compose/organizations/peerOrganizations/auditorg.healthcare.com/ca/ca.auditorg.healthcare.com-cert.pem"
       },
       "httpOptions": {
         "verify": false

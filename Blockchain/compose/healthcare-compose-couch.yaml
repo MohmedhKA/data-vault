@@ -1,5 +1,5 @@
 # ============================================================================
-# E-VOTING PHASE 1 FULL: COUCHDB FOR 4 PEERS (FIXED)
+# HEALTHCARE DATA VAULT: COUCHDB FOR 4 PEERS (FIXED)
 # ============================================================================
 version: '3.7'
 

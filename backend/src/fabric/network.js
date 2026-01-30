@@ -1,25 +1,33 @@
 const FabricGateway = require('./gateway');
 
-// Singleton instance
-let gatewayInstance = null;
+// Multiple gateway instances for different identities
+const gateways = {};
 
 async function getContract(identity = 'admin') {
-    if (!gatewayInstance) {
-        gatewayInstance = new FabricGateway();
-        await gatewayInstance.connect(identity);
+    if (!gateways[identity]) {
+        gateways[identity] = new FabricGateway();
+        await gateways[identity].connect(identity);
     }
     
     return {
-        contract: gatewayInstance.getContract(),
-        network: gatewayInstance.getNetwork(),
-        gateway: gatewayInstance
+        contract: gateways[identity].getContract(),
+        network: gateways[identity].getNetwork(),
+        gateway: gateways[identity]
     };
 }
 
-async function disconnectGateway() {
-    if (gatewayInstance) {
-        await gatewayInstance.disconnect();
-        gatewayInstance = null;
+async function disconnectGateway(identity = null) {
+    if (identity) {
+        if (gateways[identity]) {
+            await gateways[identity].disconnect();
+            delete gateways[identity];
+        }
+    } else {
+        // Disconnect all
+        for (const key in gateways) {
+            await gateways[key].disconnect();
+            delete gateways[key];
+        }
     }
 }
 

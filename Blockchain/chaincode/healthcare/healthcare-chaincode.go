@@ -27,13 +27,13 @@ type Patient struct {
 
 // Doctor represents a registered doctor
 type Doctor struct {
-	DoctorID       string `json:"doctorID"`
-	Name           string `json:"name"`
-	LicenseNumber  string `json:"licenseNumber"`
-	Specialization string `json:"specialization"`
-	HospitalName   string `json:"hospitalName"`
-	Verified       bool   `json:"verified"`
-	RegisteredAt   int64  `json:"registeredAt"`
+	DoctorID        string `json:"doctorID"`
+	Name            string `json:"name"`
+	LicenseNumber   string `json:"licenseNumber"`
+	Specialization  string `json:"specialization"`
+	HospitalName    string `json:"hospitalName"`
+	Verified        bool   `json:"verified"`
+	RegisteredAt    int64  `json:"registeredAt"`
 	RegisteredByOrg string `json:"registeredByOrg"`
 }
 
@@ -162,13 +162,13 @@ func (hc *HealthcareContract) RegisterDoctor(ctx contractapi.TransactionContextI
 	timestamp, _ := ctx.GetStub().GetTxTimestamp()
 
 	doctor := Doctor{
-		DoctorID:       doctorID,
-		Name:           name,
-		LicenseNumber:  licenseNumber,
-		Specialization: specialization,
-		HospitalName:   hospitalName,
-		Verified:       false,
-		RegisteredAt:   timestamp.Seconds,
+		DoctorID:        doctorID,
+		Name:            name,
+		LicenseNumber:   licenseNumber,
+		Specialization:  specialization,
+		HospitalName:    hospitalName,
+		Verified:        false,
+		RegisteredAt:    timestamp.Seconds,
 		RegisteredByOrg: mspID,
 	}
 
@@ -189,8 +189,8 @@ func (hc *HealthcareContract) VerifyDoctor(ctx contractapi.TransactionContextInt
 	doctorID string) error {
 
 	mspID, _ := ctx.GetClientIdentity().GetMSPID()
-	if mspID != "HealthRegistryMSP" {
-		return fmt.Errorf("only HealthRegistry can verify doctors")
+	if mspID != "AuditOrgMSP" {
+		return fmt.Errorf("only AuditOrg can verify doctors")
 	}
 
 	doctor, err := hc.GetDoctor(ctx, doctorID)
@@ -207,7 +207,7 @@ func (hc *HealthcareContract) VerifyDoctor(ctx contractapi.TransactionContextInt
 		return err
 	}
 
-	hc.createAuditLog(ctx, "", doctorID, "VERIFY_DOCTOR", "Doctor verified by HealthRegistry")
+	hc.createAuditLog(ctx, "", doctorID, "VERIFY_DOCTOR", "Doctor verified by AuditOrg")
 
 	ctx.GetStub().SetEvent("DoctorVerified", []byte(doctorID))
 	return nil

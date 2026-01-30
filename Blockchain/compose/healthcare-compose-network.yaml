@@ -17,6 +17,7 @@ volumes:
   peer0.auditorg.healthcare.com:
   peer1.auditorg.healthcare.com:
   redis-data:
+  postgres-data:
 
 networks:
   healthcare:
@@ -53,6 +54,27 @@ services:
       retries: 5
     environment:
       - TZ=Asia/Kolkata
+  # Add this service to the compose file
+  postgres:
+    image: postgres:15-alpine
+    container_name: healthcare-postgres
+    environment:
+      POSTGRES_DB: healthcare_auth
+      POSTGRES_USER: healthcare_admin
+      POSTGRES_PASSWORD: SecurePassword123!
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d
+    networks:
+      - healthcare
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U healthcare_admin -d healthcare_auth"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   healthcare-chaincode:
     container_name: healthcare-chaincode
     build:
@@ -61,7 +83,7 @@ services:
     working_dir: /chaincode
     environment:
       - CHAINCODE_SERVER_ADDRESS=0.0.0.0:7052
-      - CORE_CHAINCODE_ID_NAME=healthcare-contract_1.0:a90e90b9a9b79a1de77dafb2be05b010fe1423ddbc2c1a410a0e69361c2d85df
+      - CORE_CHAINCODE_ID_NAME=healthcare-contract_1.0:096ef5c843960c99cd8f6b85485cbc78aa544ddf2eef6b1e038eea6579df4f17
       - CORE_CHAINCODE_LOGGING_LEVEL=info
     ports:
       - "7052:7052"

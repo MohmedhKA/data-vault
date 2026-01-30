@@ -1,21 +1,35 @@
 const { getContract } = require('../fabric/network');
 const logger = require('../../utils/logger');
+const authService = require('../services/auth.service');
 
-// Register a new doctor
+// Register a new doctor (ADD PASSWORD SUPPORT)
 exports.registerDoctor = async (req, res) => {
     try {
         const {
-            doctorID,
             name,
             licenseNumber,
             specialization,
-            hospitalName
+            hospitalName,
+            password  // NEW: Add password
         } = req.body;
 
-        logger.info(`Registering doctor: ${doctorID}`);
+        // Validate required fields
+        if (!name || !licenseNumber || !specialization || !hospitalName || !password) {
+            return res.status(400).json({
+                success: false,
+                error: 'Missing required fields'
+            });
+        }
 
-        const { contract } = await getContract('admin');
+        logger.info('Registering new doctor...');
 
+        // Generate unique doctor ID
+        const doctorID = `D${Math.floor(1000 + Math.random() * 9000)}`;
+
+        // Get contract
+        const { contract } = await getContract('hospitalApolloAdmin');
+
+        // Register on blockchain
         await contract.submitTransaction(
             'RegisterDoctor',
             doctorID,
@@ -24,6 +38,14 @@ exports.registerDoctor = async (req, res) => {
             specialization,
             hospitalName
         );
+
+        // Register in auth system with password
+        await authService.registerDoctor(doctorID, password, {
+            name,
+            licenseNumber,
+            specialization,
+            hospitalName
+        });
 
         logger.info(`Doctor registered successfully: ${doctorID}`);
 
@@ -83,14 +105,15 @@ exports.getDoctor = async (req, res) => {
     }
 };
 
-// Verify a doctor (only HealthRegistry can do this)
+// Verify a doctor (only AuditOrg can do this)
 exports.verifyDoctor = async (req, res) => {
     try {
         const { doctorID } = req.params;
 
         logger.info(`Verifying doctor: ${doctorID}`);
 
-        const { contract } = await getContract('admin');
+        // Use AuditOrg admin identity for verification
+        const { contract } = await getContract('auditOrgAdmin');
 
         await contract.submitTransaction(
             'VerifyDoctor',
@@ -108,11 +131,11 @@ exports.verifyDoctor = async (req, res) => {
     } catch (error) {
         logger.error(`Failed to verify doctor: ${error.message}`);
         
-        if (error.message.includes('only HealthRegistry')) {
+        if (error.message.includes('only AuditOrg')) {
             return res.status(403).json({
                 success: false,
                 error: 'Permission denied',
-                details: 'Only HealthRegistry can verify doctors'
+                details: 'Only AuditOrg can verify doctors'
             });
         }
 

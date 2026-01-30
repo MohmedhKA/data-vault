@@ -1,22 +1,36 @@
 const { getContract } = require('../fabric/network');
 const logger = require('../../utils/logger');
+const authService = require('../services/auth.service');
 
-// Register a new patient
+// Register a new patient (ADD PASSWORD SUPPORT)
 exports.registerPatient = async (req, res) => {
     try {
         const {
-            patientID,
             name,
             dateOfBirth,
             phone,
             aadharNumber,
-            fingerprintTemplateID
+            fingerprintTemplateID,
+            password  // NEW: Add password
         } = req.body;
 
-        logger.info(`Registering patient: ${patientID}`);
+        // Validate required fields
+        if (!name || !dateOfBirth || !phone || !aadharNumber || !password) {
+            return res.status(400).json({
+                success: false,
+                error: 'Missing required fields'
+            });
+        }
 
-        const { contract } = await getContract('admin');
+        logger.info('Registering new patient...');
 
+        // Generate unique patient ID
+        const patientID = `P${Math.floor(1000 + Math.random() * 9000)}`;
+
+        // Get contract
+        const { contract } = await getContract('hospitalApolloAdmin');
+
+        // Register on blockchain
         await contract.submitTransaction(
             'RegisterPatient',
             patientID,
@@ -24,8 +38,16 @@ exports.registerPatient = async (req, res) => {
             dateOfBirth,
             phone,
             aadharNumber,
-            fingerprintTemplateID.toString()
+            fingerprintTemplateID?.toString() || '0'
         );
+
+        // Register in auth system with password
+        await authService.registerPatient(patientID, password, {
+            name,
+            dateOfBirth,
+            phone,
+            aadharNumber
+        });
 
         logger.info(`Patient registered successfully: ${patientID}`);
 
@@ -131,7 +153,8 @@ exports.getPatientAccesses = async (req, res) => {
             patientID
         );
 
-        const accesses = JSON.parse(result.toString());
+        const resultString = result.toString();
+        const accesses = resultString ? JSON.parse(resultString) : [];
 
         res.status(200).json({
             success: true,

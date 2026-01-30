@@ -9,11 +9,17 @@
     "enroll": "node scripts/enrollAdmin.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["blockchain", "hyperledger-fabric", "healthcare", "rest-api"],
+  "keywords": [
+    "blockchain",
+    "hyperledger-fabric",
+    "healthcare",
+    "rest-api"
+  ],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "body-parser": "^2.2.2",
     "cors": "^2.8.6",
     "dotenv": "^17.2.3",
@@ -21,6 +27,9 @@
     "fabric-ca-client": "^2.2.20",
     "fabric-network": "^2.2.20",
     "joi": "^17.11.0",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.18.0",
+    "sequelize": "^6.37.7",
     "winston": "^3.11.0"
   },
   "devDependencies": {

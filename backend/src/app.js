@@ -8,7 +8,10 @@ const { disconnectGateway } = require('./fabric/network');
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: 'http://localhost:5173', // Vite default port
+    credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -30,6 +33,7 @@ app.get('/health', (req, res) => {
 
 // API Routes
 const API_PREFIX = process.env.API_PREFIX || '/api/v1';
+app.use(`${API_PREFIX}/auth`, require('./routes/auth.routes'));
 app.use(`${API_PREFIX}/patients`, require('./routes/patient.routes'));
 app.use(`${API_PREFIX}/doctors`, require('./routes/doctor.routes'));
 app.use(`${API_PREFIX}/access`, require('./routes/access.routes'));

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# E-Voting Network Startup - ENHANCED VERSION FOR PROPER GOVERNANCE
+# Healthcare Network Startup - ENHANCED VERSION FOR PROPER GOVERNANCE
 # 🏛️ USES ELECTION COMMISSION ADMIN FOR CHAINCODE GOVERNANCE
 # 🆕 ADDS -v FLAG FOR VOLUME-ONLY CLEANUP  
 # ⚔️ SACRED VOW: All existing functionality preserved, only enhanced!
@@ -98,7 +98,7 @@ function checkPrereqs() {
 # Certificate generation for 3-org setup - FIXED PATHS
 ################################################################################
 function createOrgs() {
-    infoln "🔄 Generating certificates using cryptogen for 3-org E-Voting setup (4 orderers)..."
+    infoln "🔄 Generating certificates using cryptogen for 3-org Healthcare setup (4 orderers)..."
     if [ "$CRYPTO" == "cryptogen" ]; then
         which cryptogen > /dev/null 2>&1
         if [ "$?" -ne 0 ]; then
@@ -106,27 +106,27 @@ function createOrgs() {
         fi
 
         # Check if certificates already exist in correct structure (including orderer4)
-        #if [ -d "../compose/organizations/ordererOrganizations/electioncommission.evoting.com/orderers/orderer1.healthregistry.healthcare.com/msp/signcerts" ] &&
-        #   [ "$(ls -A ../compose/organizations/ordererOrganizations/electioncommission.evoting.com/orderers/orderer1.healthregistry.healthcare.com/msp/signcerts 2>/dev/null)" ] &&
-        #   [ -d "../compose/organizations/ordererOrganizations/electioncommission.evoting.com/orderers/orderer4.electioncommission.evoting.com/msp/signcerts" ] &&
-        #   [ "$(ls -A ../compose/organizations/ordererOrganizations/electioncommission.evoting.com/orderers/orderer4.electioncommission.evoting.com/msp/signcerts 2>/dev/null)" ]; then
+        #if [ -d "../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/orderers/orderer1.healthregistry.healthcare.com/msp/signcerts" ] &&
+        #   [ "$(ls -A ../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/orderers/orderer1.healthregistry.healthcare.com/msp/signcerts 2>/dev/null)" ] &&
+        #   [ -d "../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/orderers/orderer4.healthregistry.healthcare.com/msp/signcerts" ] &&
+        #   [ "$(ls -A ../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/orderers/orderer4.healthregistry.healthcare.com/msp/signcerts 2>/dev/null)" ]; then
         #    infoln "✅ Certificates already exist in proper structure (including orderer4)"
         #    return
         #fi
 
         infoln "Creating Health Registry Identities (4 orderers for SmartBFT)"
         set -x
-        cryptogen generate --config=../organizations/cryptogen/crypto-config-election-commission.yaml --output="../compose/organizations"
+        cryptogen generate --config=../organizations/cryptogen/crypto-config-health-registry.yaml --output="../compose/organizations"
         res=$?
         { set +x; } 2>/dev/null
         if [ $res -ne 0 ]; then
-            fatalln "Failed to generate Election Commission certificates..."
+            fatalln "Failed to generate Health Registry certificates..."
         fi
 
         # Verify orderer4 was created
-        if [ ! -d "../compose/organizations/ordererOrganizations/electioncommission.evoting.com/orderers/orderer4.electioncommission.evoting.com" ]; then
+        if [ ! -d "../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/orderers/orderer4.healthregistry.healthcare.com" ]; then
             errorln "⚠️  orderer4 certificates not generated!"
-            errorln "    Make sure crypto-config-election-commission.yaml has 4 orderers:"
+            errorln "    Make sure crypto-config-health-registry.yaml has 4 orderers:"
             errorln "    Specs:"
             errorln "      - Hostname: orderer1"
             errorln "      - Hostname: orderer2"
@@ -138,20 +138,20 @@ function createOrgs() {
 
         infoln "Creating Hospital Apollo Identities"
         set -x
-        cryptogen generate --config=../organizations/cryptogen/crypto-config-political-party.yaml --output="../compose/organizations"
+        cryptogen generate --config=../organizations/cryptogen/crypto-config-hospital-apollo.yaml --output="../compose/organizations"
         res=$?
         { set +x; } 2>/dev/null
         if [ $res -ne 0 ]; then
-            fatalln "Failed to generate Political Party certificates..."
+            fatalln "Failed to generate Hospital Apollo certificates..."
         fi
 
         infoln "Creating Audit Org Identities"
         set -x
-        cryptogen generate --config=../organizations/cryptogen/crypto-config-audit-authority.yaml --output="../compose/organizations"
+        cryptogen generate --config=../organizations/cryptogen/crypto-config-audit-org.yaml --output="../compose/organizations"
         res=$?
         { set +x; } 2>/dev/null
         if [ $res -ne 0 ]; then
-            fatalln "Failed to generate Audit Authority certificates..."
+            fatalln "Failed to generate Audit Org certificates..."
         fi
     fi
     
@@ -159,9 +159,9 @@ function createOrgs() {
     
     # Display certificate summary
     infoln "📋 Certificate Summary:"
-    infoln "   • Orderers: $(ls -d ../compose/organizations/ordererOrganizations/electioncommission.evoting.com/orderers/orderer* 2>/dev/null | wc -l)"
-    infoln "   • Political Party Peers: $(ls -d ../compose/organizations/peerOrganizations/politicalparty.evoting.com/peers/peer* 2>/dev/null | wc -l)"
-    infoln "   • Audit Authority Peers: $(ls -d ../compose/organizations/peerOrganizations/auditauthority.evoting.com/peers/peer* 2>/dev/null | wc -l)"
+    infoln "   • Orderers: $(ls -d ../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/orderers/orderer* 2>/dev/null | wc -l)"
+    infoln "   • Hospital Apollo Peers: $(ls -d ../compose/organizations/peerOrganizations/hospitalapollo.healthcare.com/peers/peer* 2>/dev/null | wc -l)"
+    infoln "   • Audit Org Peers: $(ls -d ../compose/organizations/peerOrganizations/auditorg.healthcare.com/peers/peer* 2>/dev/null | wc -l)"
 }
 
 
@@ -174,8 +174,8 @@ function networkUp() {
     infoln "🔧 Aligning Docker images with available versions..."
 
     # Backup original compose files
-    cp ../compose/evoting-compose-network.yaml ../compose/evoting-compose-network.yaml.backup 2>/dev/null || true
-    cp ../compose/evoting-compose-ca.yaml ../compose/evoting-compose-ca.yaml.backup 2>/dev/null || true
+    cp ../compose/healthcare-compose-network.yaml ../compose/healthcare-compose-network.yaml.backup 2>/dev/null || true
+    cp ../compose/healthcare-compose-ca.yaml ../compose/healthcare-compose-ca.yaml.backup 2>/dev/null || true
 
     # Use correct available versions
     # Peers and Orderers: 2.5.9 (latest in 2.5.x series)
@@ -184,12 +184,12 @@ function networkUp() {
     infoln "Using local version $LOCAL_VERSION -> Docker version $DOCKER_VERSION"
 
     # Use EXACT matching versions
-    #sed -i "s|hyperledger/fabric-peer:.*|hyperledger/fabric-peer:$DOCKER_VERSION|g" ../compose/evoting-compose-network.yaml
-    #sed -i "s|hyperledger/fabric-orderer:.*|hyperledger/fabric-orderer:$DOCKER_VERSION|g" ../compose/evoting-compose-network.yaml
+    #sed -i "s|hyperledger/fabric-peer:.*|hyperledger/fabric-peer:$DOCKER_VERSION|g" ../compose/healthcare-compose-network.yaml
+    #sed -i "s|hyperledger/fabric-orderer:.*|hyperledger/fabric-orderer:$DOCKER_VERSION|g" ../compose/healthcare-compose-network.yaml
 
     # For CA, extract major.minor and use appropriate CA version
     CA_VERSION="1.5.15"  # Latest CA compatible with 2.5.x
-    #sed -i "s|hyperledger/fabric-ca:.*|hyperledger/fabric-ca:$CA_VERSION|g" ../compose/evoting-compose-ca.yaml
+    #sed -i "s|hyperledger/fabric-ca:.*|hyperledger/fabric-ca:$CA_VERSION|g" ../compose/healthcare-compose-ca.yaml
 
 
     infoln "✅ Docker images aligned: peer/orderer:2.5.9, ca:1.5.15"
@@ -206,7 +206,7 @@ function networkUp() {
     fi
     COMPOSE_FILES="${COMPOSE_FILES} -f ../compose/${COMPOSE_FILE_CA}"
 
-    infoln "🚀 Starting E-Voting network with VERSION-ALIGNED Fabric 2.x..."
+    infoln "🚀 Starting Healthcare network with VERSION-ALIGNED Fabric 2.x..."
     infoln "🎯 Using matching 2.5.9 images for ESCC compatibility..."
     
     # Pull the correct images first to ensure they're available
@@ -228,7 +228,7 @@ function networkUp() {
     export FABRIC_CCENV_IMAGE="hyperledger/fabric-ccenv:$DOCKER_VERSION"
     export FABRIC_BASEOS_IMAGE="hyperledger/fabric-baseos:$DOCKER_VERSION"
     sleep 5
-    infoln "🎉 VERSION-ALIGNED E-Voting network started successfully!"
+    infoln "🎉 VERSION-ALIGNED Healthcare network started successfully!"
     infoln "📋 Docker images now match local binaries - ESCC should work!"
 }
 
@@ -244,8 +244,8 @@ function networkDown() {
     COMPOSE_FILES="${COMPOSE_BASE_FILES} ${COMPOSE_COUCH_FILES} ${COMPOSE_CA_FILES}"
 
     infoln "🛑 Stopping external chaincode container..."
-    docker stop evoting-chaincode 2>/dev/null || true
-    docker rm evoting-chaincode 2>/dev/null || true
+    docker stop healthcare-chaincode 2>/dev/null || true
+    docker rm healthcare-chaincode 2>/dev/null || true
 
     if [ "${CONTAINER_CLI}" == "docker" ]; then
         DOCKER_SOCK="${DOCKER_SOCK}" ${CONTAINER_CLI_COMPOSE} ${COMPOSE_FILES} down --volumes --remove-orphans
@@ -278,7 +278,7 @@ function networkDown() {
 ################################################################################
 
 function verifyNetwork() {
-    infoln "🔍 Verifying E-Voting network status..."
+    infoln "🔍 Verifying Healthcare network status..."
     echo ""
     infoln "=== RUNNING CONTAINERS ==="
     docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | head -20
@@ -287,16 +287,16 @@ function verifyNetwork() {
     # Count containers
     local total_running=$(docker ps -q | wc -l)
     local ca_count=$(docker ps | grep "ca_" | wc -l)
-    local peer_count=$(docker ps | grep "peer" | grep "evoting.com" | wc -l)
-    local orderer_count=$(docker ps | grep "orderer" | grep "electioncommission.evoting.com" | wc -l)
+    local peer_count=$(docker ps | grep "peer" | grep "healthcare.com" | wc -l)
+    local orderer_count=$(docker ps | grep "orderer" | grep "healthregistry.healthcare.com" | wc -l)
     local couchdb_count=$(docker ps | grep "couchdb" | wc -l)
-    local chaincode_count=$(docker ps | grep "evoting-chaincode" | wc -l)
+    local chaincode_count=$(docker ps | grep "healthcare-chaincode" | wc -l)
     
     # Detailed peer breakdown
-    local peer0_pp=$(docker ps | grep "peer0.politicalparty.evoting.com" | wc -l)
-    local peer1_pp=$(docker ps | grep "peer1.politicalparty.evoting.com" | wc -l)
-    local peer0_aa=$(docker ps | grep "peer0.auditauthority.evoting.com" | wc -l)
-    local peer1_aa=$(docker ps | grep "peer1.auditauthority.evoting.com" | wc -l)
+    local peer0_pp=$(docker ps | grep "peer0.hospitalapollo.healthcare.com" | wc -l)
+    local peer1_pp=$(docker ps | grep "peer1.hospitalapollo.healthcare.com" | wc -l)
+    local peer0_aa=$(docker ps | grep "peer0.auditorg.healthcare.com" | wc -l)
+    local peer1_aa=$(docker ps | grep "peer1.auditorg.healthcare.com" | wc -l)
     
     infoln "📊 CONTAINER BREAKDOWN:"
     infoln "╔════════════════════════════════════════╗"
@@ -308,10 +308,10 @@ function verifyNetwork() {
     infoln "╠════════════════════════════════════════╣"
     infoln "║  PEER NODES (PRODUCTION SETUP)         ║"
     infoln "╠════════════════════════════════════════╣"
-    infoln "║  • Political Party Peer0:   $peer0_pp/1        ║"
-    infoln "║  • Political Party Peer1:   $peer1_pp/1        ║"
-    infoln "║  • Audit Authority Peer0:   $peer0_aa/1        ║"
-    infoln "║  • Audit Authority Peer1:   $peer1_aa/1        ║"
+    infoln "║  • Hospital Apollo Peer0:   $peer0_pp/1        ║"
+    infoln "║  • Hospital Apollo Peer1:   $peer1_pp/1        ║"
+    infoln "║  • Audit Org Peer0:   $peer0_aa/1        ║"
+    infoln "║  • Audit Org Peer1:   $peer1_aa/1        ║"
     infoln "║  • TOTAL PEERS:             $peer_count/4        ║"
     infoln "╠════════════════════════════════════════╣"
     infoln "║  EXTERNAL CHAINCODE SERVER             ║"
@@ -324,7 +324,7 @@ function verifyNetwork() {
     # Health status
     if [ $orderer_count -eq 4 ] && [ $peer_count -eq 4 ] && [ $chaincode_count -eq 1 ]; then
         infoln "🔥🔥🔥 PRODUCTION NETWORK FULLY OPERATIONAL! 🔥🔥🔥"
-        infoln "✅ 3-Organization E-Voting Blockchain with External Chaincode"
+        infoln "✅ 3-Organization Healthcare Blockchain with External Chaincode"
         echo ""
         infoln "🎯 NETWORK ACCESS POINTS:"
         infoln "┌─────────────────────────────────────────────────────────┐"
@@ -351,13 +351,13 @@ function verifyNetwork() {
         infoln "│  EXTERNAL CHAINCODE SERVER                              │"
         infoln "├─────────────────────────────────────────────────────────┤"
         infoln "│  • Chaincode Server: localhost:7052                     │"
-        infoln "│  • Container: evoting-chaincode                         │"
+        infoln "│  • Container: healthcare-chaincode                         │"
         infoln "└─────────────────────────────────────────────────────────┘"
         echo ""
         infoln "🚀 NEXT STEPS:"
         infoln "  1. Create channel:  ./network-up.sh createChannel"
         infoln "  2. Deploy contract: ./network-up.sh deployChaincode"
-        infoln "  3. Test blockchain: ./test-evoting.sh"
+        infoln "  3. Test blockchain: ./test-healthcare.sh"
         echo ""
     elif [ $orderer_count -ge 1 ] && [ $peer_count -ge 2 ]; then
         infoln "⚡ PARTIAL SUCCESS: Network running but not complete!"
@@ -372,7 +372,7 @@ function verifyNetwork() {
         fi
         if [ $chaincode_count -eq 0 ]; then
             warnln "⚠️  External chaincode server not running!"
-            warnln "   Start manually: cd ../compose && docker-compose -f evoting-compose-network.yaml up -d evoting-chaincode"
+            warnln "   Start manually: cd ../compose && docker-compose -f healthcare-compose-network.yaml up -d healthcare-chaincode"
         fi
     else
         warnln "⚠️  MINIMAL SETUP: Only $total_running containers running"
@@ -393,7 +393,7 @@ function createChannel() {
     infoln "🌊 Creating channel: ${CHANNEL_NAME} with 4 orderers (SmartBFT)..."
 
     # Check if orderers are running
-    ORDERER_COUNT=$(docker ps | grep "orderer" | grep "electioncommission.evoting.com" | grep "Up" | wc -l)
+    ORDERER_COUNT=$(docker ps | grep "orderer" | grep "healthregistry.healthcare.com" | grep "Up" | wc -l)
     if [ $ORDERER_COUNT -lt 4 ]; then
         errorln "❌ Only $ORDERER_COUNT orderers running! Need 4 orderers for SmartBFT."
         errorln "   Start network first: ./network-up.sh up -s couchdb"
@@ -425,9 +425,9 @@ function createChannel() {
         --channelID ${CHANNEL_NAME} \
         --config-block ./channel-artifacts/${CHANNEL_NAME}.block \
         -o localhost:7053 \
-        --ca-file ../compose/organizations/ordererOrganizations/electioncommission.evoting.com/msp/tlscacerts/tlsca.electioncommission.evoting.com-cert.pem \
-        --client-cert ../compose/organizations/ordererOrganizations/electioncommission.evoting.com/orderers/orderer1.healthregistry.healthcare.com/tls/server.crt \
-        --client-key ../compose/organizations/ordererOrganizations/electioncommission.evoting.com/orderers/orderer1.healthregistry.healthcare.com/tls/server.key 2>&1
+        --ca-file ../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/msp/tlscacerts/tlsca.healthregistry.healthcare.com-cert.pem \
+        --client-cert ../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/orderers/orderer1.healthregistry.healthcare.com/tls/server.crt \
+        --client-key ../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/orderers/orderer1.healthregistry.healthcare.com/tls/server.key 2>&1
     res=$?
     { set +x; } 2>/dev/null
     if [ $res -ne 0 ] && [ $res -ne 8 ]; then
@@ -442,9 +442,9 @@ function createChannel() {
         --channelID ${CHANNEL_NAME} \
         --config-block ./channel-artifacts/${CHANNEL_NAME}.block \
         -o localhost:8053 \
-        --ca-file ../compose/organizations/ordererOrganizations/electioncommission.evoting.com/msp/tlscacerts/tlsca.electioncommission.evoting.com-cert.pem \
-        --client-cert ../compose/organizations/ordererOrganizations/electioncommission.evoting.com/orderers/orderer2.electioncommission.evoting.com/tls/server.crt \
-        --client-key ../compose/organizations/ordererOrganizations/electioncommission.evoting.com/orderers/orderer2.electioncommission.evoting.com/tls/server.key 2>&1
+        --ca-file ../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/msp/tlscacerts/tlsca.healthregistry.healthcare.com-cert.pem \
+        --client-cert ../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/orderers/orderer2.healthregistry.healthcare.com/tls/server.crt \
+        --client-key ../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/orderers/orderer2.healthregistry.healthcare.com/tls/server.key 2>&1
     res=$?
     { set +x; } 2>/dev/null
     if [ $res -ne 0 ] && [ $res -ne 8 ]; then
@@ -459,9 +459,9 @@ function createChannel() {
         --channelID ${CHANNEL_NAME} \
         --config-block ./channel-artifacts/${CHANNEL_NAME}.block \
         -o localhost:9053 \
-        --ca-file ../compose/organizations/ordererOrganizations/electioncommission.evoting.com/msp/tlscacerts/tlsca.electioncommission.evoting.com-cert.pem \
-        --client-cert ../compose/organizations/ordererOrganizations/electioncommission.evoting.com/orderers/orderer3.electioncommission.evoting.com/tls/server.crt \
-        --client-key ../compose/organizations/ordererOrganizations/electioncommission.evoting.com/orderers/orderer3.electioncommission.evoting.com/tls/server.key 2>&1
+        --ca-file ../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/msp/tlscacerts/tlsca.healthregistry.healthcare.com-cert.pem \
+        --client-cert ../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/orderers/orderer3.healthregistry.healthcare.com/tls/server.crt \
+        --client-key ../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/orderers/orderer3.healthregistry.healthcare.com/tls/server.key 2>&1
     res=$?
     { set +x; } 2>/dev/null
     if [ $res -ne 0 ] && [ $res -ne 8 ]; then
@@ -476,9 +476,9 @@ function createChannel() {
         --channelID ${CHANNEL_NAME} \
         --config-block ./channel-artifacts/${CHANNEL_NAME}.block \
         -o localhost:10053 \
-        --ca-file ../compose/organizations/ordererOrganizations/electioncommission.evoting.com/msp/tlscacerts/tlsca.electioncommission.evoting.com-cert.pem \
-        --client-cert ../compose/organizations/ordererOrganizations/electioncommission.evoting.com/orderers/orderer4.electioncommission.evoting.com/tls/server.crt \
-        --client-key ../compose/organizations/ordererOrganizations/electioncommission.evoting.com/orderers/orderer4.electioncommission.evoting.com/tls/server.key 2>&1
+        --ca-file ../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/msp/tlscacerts/tlsca.healthregistry.healthcare.com-cert.pem \
+        --client-cert ../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/orderers/orderer4.healthregistry.healthcare.com/tls/server.crt \
+        --client-key ../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/orderers/orderer4.healthregistry.healthcare.com/tls/server.key 2>&1
     res=$?
     { set +x; } 2>/dev/null
     if [ $res -ne 0 ] && [ $res -ne 8 ]; then
@@ -490,7 +490,7 @@ function createChannel() {
     infoln "⏳ Waiting for SmartBFT consensus to stabilize..."
     sleep 15
 
-    # Join peers - Political Party
+    # Join peers - Hospital Apollo
     infoln "📝 Step 5: Joining peer0.politicalparty..."
     setGlobals "HospitalApollo" 0
     set -x
@@ -511,7 +511,7 @@ function createChannel() {
         fatalln "Failed to join peer1.politicalparty"
     fi
 
-    # Join peers - Audit Authority
+    # Join peers - Audit Org
     infoln "📝 Step 7: Joining peer0.auditauthority..."
     setGlobals "AuditOrg" 0
     set -x
@@ -559,21 +559,21 @@ function setAnchorPeers() {
   fi
   
   # For each organization, set anchor peer
-  for ORG in "PoliticalParty" "AuditAuthority"; do
+  for ORG in "HospitalApollo" "AuditOrg"; do
     infoln "📌 Setting anchor peer for ${ORG}..."
     
     # Set globals for organization
     setGlobals "$ORG" 0
     
     # Determine anchor peer details
-    if [ "$ORG" == "PoliticalParty" ]; then
-      ANCHOR_HOST="peer0.politicalparty.evoting.com"
+    if [ "$ORG" == "HospitalApollo" ]; then
+      ANCHOR_HOST="peer0.hospitalapollo.healthcare.com"
       ANCHOR_PORT=7051
-      MSP_ID="PoliticalPartyMSP"
+      MSP_ID="HospitalApolloMSP"
     else
-      ANCHOR_HOST="peer0.auditauthority.evoting.com"
+      ANCHOR_HOST="peer0.auditorg.healthcare.com"
       ANCHOR_PORT=9051
-      MSP_ID="AuditAuthorityMSP"
+      MSP_ID="AuditOrgMSP"
     fi
     
     # Fetch current channel config
@@ -582,7 +582,7 @@ function setAnchorPeers() {
       -o orderer1.healthregistry.healthcare.com:7050 \
       --ordererTLSHostnameOverride orderer1.healthregistry.healthcare.com \
       -c $CHANNEL_NAME --tls \
-      --cafile ${NETWORK_DIR}/../compose/organizations/ordererOrganizations/electioncommission.evoting.com/orderers/orderer1.healthregistry.healthcare.com/tls/ca.crt \
+      --cafile ${NETWORK_DIR}/../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/orderers/orderer1.healthregistry.healthcare.com/tls/ca.crt \
       >/dev/null 2>&1
     
     if [ $? -ne 0 ]; then
@@ -649,7 +649,7 @@ function setAnchorPeers() {
       -o orderer1.healthregistry.healthcare.com:7050 \
       --ordererTLSHostnameOverride orderer1.healthregistry.healthcare.com \
       --tls \
-      --cafile ${NETWORK_DIR}/../compose/organizations/ordererOrganizations/electioncommission.evoting.com/orderers/orderer1.healthregistry.healthcare.com/tls/ca.crt \
+      --cafile ${NETWORK_DIR}/../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/orderers/orderer1.healthregistry.healthcare.com/tls/ca.crt \
       >/dev/null 2>&1
     
     if [ $? -eq 0 ]; then
@@ -684,7 +684,7 @@ function verifyAnchors() {
   export FABRIC_CFG_PATH=${NETWORK_DIR}/../config
   export CORE_PEER_TLS_ENABLED=true
   
-  # Set globals for PoliticalParty peer
+  # Set globals for HospitalApollo peer
   setGlobals "HospitalApollo" 0
   
   # Create temp directory
@@ -693,10 +693,10 @@ function verifyAnchors() {
   # Fetch config from peer (runs INSIDE container)
   infoln "  → Fetching channel configuration..."
   peer channel fetch config /tmp/anchor-verify/config_block.pb \
-    -c evoting-channel \
+    -c healthcare-channel \
     -o orderer1.healthregistry.healthcare.com:7050 --tls \
     --ordererTLSHostnameOverride orderer1.healthregistry.healthcare.com \
-    --cafile ${NETWORK_DIR}/../compose/organizations/ordererOrganizations/electioncommission.evoting.com/orderers/orderer1.healthregistry.healthcare.com/tls/ca.crt \
+    --cafile ${NETWORK_DIR}/../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/orderers/orderer1.healthregistry.healthcare.com/tls/ca.crt \
     >/dev/null 2>&1
   
   if [ $? -ne 0 ]; then
@@ -719,27 +719,27 @@ function verifyAnchors() {
   
   # Extract anchor peer info (runs on HOST with jq!)
   echo ""
-  infoln "=== 📍 PoliticalParty Anchor Peers ==="
+  infoln "=== 📍 HospitalApollo Anchor Peers ==="
   PP_ANCHORS=$(cat /tmp/anchor-verify/config.json | \
-    jq '.channel_group.groups.Application.groups.PoliticalPartyMSP.values.AnchorPeers.value.anchor_peers' 2>/dev/null)
+    jq '.channel_group.groups.Application.groups.HospitalApolloMSP.values.AnchorPeers.value.anchor_peers' 2>/dev/null)
   
   if [ "$PP_ANCHORS" = "null" ] || [ -z "$PP_ANCHORS" ]; then
-    errorln "❌ No anchor peers configured for PoliticalParty!"
+    errorln "❌ No anchor peers configured for HospitalApollo!"
   else
     echo "$PP_ANCHORS" | jq -C '.'
-    infoln "✅ PoliticalParty anchor peer is configured"
+    infoln "✅ HospitalApollo anchor peer is configured"
   fi
   
   echo ""
-  infoln "=== 📍 AuditAuthority Anchor Peers ==="
+  infoln "=== 📍 AuditOrg Anchor Peers ==="
   AA_ANCHORS=$(cat /tmp/anchor-verify/config.json | \
-    jq '.channel_group.groups.Application.groups.AuditAuthorityMSP.values.AnchorPeers.value.anchor_peers' 2>/dev/null)
+    jq '.channel_group.groups.Application.groups.AuditOrgMSP.values.AnchorPeers.value.anchor_peers' 2>/dev/null)
   
   if [ "$AA_ANCHORS" = "null" ] || [ -z "$AA_ANCHORS" ]; then
-    errorln "❌ No anchor peers configured for AuditAuthority!"
+    errorln "❌ No anchor peers configured for AuditOrg!"
   else
     echo "$AA_ANCHORS" | jq -C '.'
-    infoln "✅ AuditAuthority anchor peer is configured"
+    infoln "✅ AuditOrg anchor peer is configured"
   fi
   
   # Cleanup
@@ -792,10 +792,10 @@ function setGlobals() {
 ################################################################################
 
 function deployChaincode() {
-    infoln "🚀 Starting External E-Voting Chaincode Deployment"
+    infoln "🚀 Starting External Healthcare Chaincode Deployment"
     
     # Configuration
-    CHAINCODE_NAME="evoting-contract"
+    CHAINCODE_NAME="healthcare-contract"
     CHAINCODE_VERSION="1.0"
     SEQUENCE=1
     
@@ -803,18 +803,18 @@ function deployChaincode() {
     NETWORK_DIR=$(pwd)
     
     # Verify network is running
-    local orderer_running=$(docker ps | grep "orderer" | grep "electioncommission.evoting.com" | grep "Up" | wc -l)
+    local orderer_running=$(docker ps | grep "orderer" | grep "healthregistry.healthcare.com" | grep "Up" | wc -l)
     if [ $orderer_running -lt 3 ]; then
         errorln "❌ Only $orderer_running orderers running! Need 3 orderers."
         return 1
     fi
     
     # Check if external chaincode server is running
-    local cc_server_running=$(docker ps | grep "evoting-chaincode" | grep "Up" | wc -l)
+    local cc_server_running=$(docker ps | grep "healthcare-chaincode" | grep "Up" | wc -l)
     if [ $cc_server_running -eq 0 ]; then
         warnln "⚠️  External chaincode server not running! Starting it..."
         cd ../compose
-        ${CONTAINER_CLI_COMPOSE} -f evoting-compose-network.yaml up -d evoting-chaincode
+        ${CONTAINER_CLI_COMPOSE} -f healthcare-compose-network.yaml up -d healthcare-chaincode
         cd "$NETWORK_DIR"
         sleep 5
     fi
@@ -828,10 +828,10 @@ function deployChaincode() {
     # Check if chaincode is already installed
     infoln "🔍 Checking chaincode installation status..."
     
-    export CORE_PEER_LOCALMSPID="PoliticalPartyMSP"
-    export CORE_PEER_ADDRESS=peer0.politicalparty.evoting.com:7051
-    export CORE_PEER_TLS_ROOTCERT_FILE=${NETWORK_DIR}/../compose/organizations/peerOrganizations/politicalparty.evoting.com/peers/peer0.politicalparty.evoting.com/tls/ca.crt
-    export CORE_PEER_MSPCONFIGPATH=${NETWORK_DIR}/../compose/organizations/peerOrganizations/politicalparty.evoting.com/users/Admin@politicalparty.evoting.com/msp
+    export CORE_PEER_LOCALMSPID="HospitalApolloMSP"
+    export CORE_PEER_ADDRESS=peer0.hospitalapollo.healthcare.com:7051
+    export CORE_PEER_TLS_ROOTCERT_FILE=${NETWORK_DIR}/../compose/organizations/peerOrganizations/hospitalapollo.healthcare.com/peers/peer0.hospitalapollo.healthcare.com/tls/ca.crt
+    export CORE_PEER_MSPCONFIGPATH=${NETWORK_DIR}/../compose/organizations/peerOrganizations/hospitalapollo.healthcare.com/users/Admin@hospitalapollo.healthcare.com/msp
     
     peer lifecycle chaincode queryinstalled 2>&1 > ${NETWORK_DIR}/chaincode_check.txt
     EXISTING_PACKAGE_ID=$(grep "${CHAINCODE_NAME}_${CHAINCODE_VERSION}" ${NETWORK_DIR}/chaincode_check.txt | sed -n 's/.*identifier: \([^ ]*\).*/\1/p' | head -1)
@@ -850,7 +850,7 @@ function deployChaincode() {
         # Create connection.json for external chaincode
         cat > "$PKG_DIR/connection.json" <<EOF
 {
-  "address": "evoting-chaincode:7052",
+  "address": "healthcare-chaincode:7052",
   "dial_timeout": "10s",
   "tls_required": false
 }
@@ -892,7 +892,7 @@ EOF
     # ✅ PERMANENT FIX: Update compose file and recreate container
     infoln "📝 Updating compose file with actual CHAINCODE_ID..."
     
-    COMPOSE_FILE="../compose/evoting-compose-network.yaml"
+    COMPOSE_FILE="../compose/healthcare-compose-network.yaml"
     echo "📝 Compose file path: $COMPOSE_FILE"
 
     if [ ! -f "$COMPOSE_FILE" ]; then
@@ -911,33 +911,33 @@ EOF
     # Recreate chaincode container using Docker CLI (avoids restarting peers!)
     infoln "🔄 Recreating chaincode container with correct Package ID..."
 
-    ACTUAL_NETWORK=$(docker inspect peer0.politicalparty.evoting.com --format '{{range $k, $v := .NetworkSettings.Networks}}{{$k}}{{end}}')
+    ACTUAL_NETWORK=$(docker inspect peer0.hospitalapollo.healthcare.com --format '{{range $k, $v := .NetworkSettings.Networks}}{{$k}}{{end}}')
     
     if [ -z "$ACTUAL_NETWORK" ]; then
-        warnln "⚠️  Could not auto-detect network, defaulting to 'evoting_network'"
-        ACTUAL_NETWORK="evoting_network"
+        warnln "⚠️  Could not auto-detect network, defaulting to 'healthcare_network'"
+        ACTUAL_NETWORK="healthcare_network"
     else
         infoln "🌐 Detected active network: $ACTUAL_NETWORK"
     fi
     
-    docker stop evoting-chaincode >/dev/null 2>&1
-    docker rm evoting-chaincode >/dev/null 2>&1
+    docker stop healthcare-chaincode >/dev/null 2>&1
+    docker rm healthcare-chaincode >/dev/null 2>&1
     
     docker run -d \
-        --name evoting-chaincode \
+        --name healthcare-chaincode \
         --network $ACTUAL_NETWORK \
-        --network-alias evoting-chaincode \
+        --network-alias healthcare-chaincode \
         -p 7052:7052 \
         -e CHAINCODE_SERVER_ADDRESS=0.0.0.0:7052 \
         -e CORE_CHAINCODE_ID_NAME=${PACKAGE_ID} \
         -e CORE_CHAINCODE_LOGGING_LEVEL=info \
         -w /chaincode \
-        compose-evoting-chaincode:latest \
-        ./evoting-chaincode
+        compose-healthcare-chaincode:latest \
+        ./healthcare-chaincode
     
     sleep 5
     
-    ACTUAL_ID=$(docker inspect evoting-chaincode --format='{{range .Config.Env}}{{println .}}{{end}}' | grep "CORE_CHAINCODE_ID_NAME=" | cut -d'=' -f2)
+    ACTUAL_ID=$(docker inspect healthcare-chaincode --format='{{range .Config.Env}}{{println .}}{{end}}' | grep "CORE_CHAINCODE_ID_NAME=" | cut -d'=' -f2)
     if [ "$ACTUAL_ID" = "$PACKAGE_ID" ]; then
         infoln "✅ Chaincode server running with Package ID: ${PACKAGE_ID}"
     else
@@ -948,20 +948,20 @@ EOF
     
     # Install on remaining peers
     infoln "📥 Installing on peer1.politicalparty..."
-    export CORE_PEER_ADDRESS=peer1.politicalparty.evoting.com:8051
-    export CORE_PEER_TLS_ROOTCERT_FILE=${NETWORK_DIR}/../compose/organizations/peerOrganizations/politicalparty.evoting.com/peers/peer1.politicalparty.evoting.com/tls/ca.crt
+    export CORE_PEER_ADDRESS=peer1.hospitalapollo.healthcare.com:8051
+    export CORE_PEER_TLS_ROOTCERT_FILE=${NETWORK_DIR}/../compose/organizations/peerOrganizations/hospitalapollo.healthcare.com/peers/peer1.hospitalapollo.healthcare.com/tls/ca.crt
     peer lifecycle chaincode install ${NETWORK_DIR}/${CHAINCODE_NAME}.tar.gz >/dev/null 2>&1 && infoln "✅ Installed on peer1.politicalparty" || warnln "⚠️  peer1.politicalparty skipped"
     
     infoln "📥 Installing on peer0.auditauthority..."
-    export CORE_PEER_LOCALMSPID="AuditAuthorityMSP"
-    export CORE_PEER_ADDRESS=peer0.auditauthority.evoting.com:9051
-    export CORE_PEER_TLS_ROOTCERT_FILE=${NETWORK_DIR}/../compose/organizations/peerOrganizations/auditauthority.evoting.com/peers/peer0.auditauthority.evoting.com/tls/ca.crt
-    export CORE_PEER_MSPCONFIGPATH=${NETWORK_DIR}/../compose/organizations/peerOrganizations/auditauthority.evoting.com/users/Admin@auditauthority.evoting.com/msp
+    export CORE_PEER_LOCALMSPID="AuditOrgMSP"
+    export CORE_PEER_ADDRESS=peer0.auditorg.healthcare.com:9051
+    export CORE_PEER_TLS_ROOTCERT_FILE=${NETWORK_DIR}/../compose/organizations/peerOrganizations/auditorg.healthcare.com/peers/peer0.auditorg.healthcare.com/tls/ca.crt
+    export CORE_PEER_MSPCONFIGPATH=${NETWORK_DIR}/../compose/organizations/peerOrganizations/auditorg.healthcare.com/users/Admin@auditorg.healthcare.com/msp
     peer lifecycle chaincode install ${NETWORK_DIR}/${CHAINCODE_NAME}.tar.gz >/dev/null 2>&1 && infoln "✅ Installed on peer0.auditauthority" || warnln "⚠️  peer0.auditauthority skipped"
     
     infoln "📥 Installing on peer1.auditauthority..."
-    export CORE_PEER_ADDRESS=peer1.auditauthority.evoting.com:10051
-    export CORE_PEER_TLS_ROOTCERT_FILE=${NETWORK_DIR}/../compose/organizations/peerOrganizations/auditauthority.evoting.com/peers/peer1.auditauthority.evoting.com/tls/ca.crt
+    export CORE_PEER_ADDRESS=peer1.auditorg.healthcare.com:10051
+    export CORE_PEER_TLS_ROOTCERT_FILE=${NETWORK_DIR}/../compose/organizations/peerOrganizations/auditorg.healthcare.com/peers/peer1.auditorg.healthcare.com/tls/ca.crt
     peer lifecycle chaincode install ${NETWORK_DIR}/${CHAINCODE_NAME}.tar.gz >/dev/null 2>&1 && infoln "✅ Installed on peer1.auditauthority" || warnln "⚠️  peer1.auditauthority skipped"
     
     rm -f ${NETWORK_DIR}/${CHAINCODE_NAME}.tar.gz
@@ -969,62 +969,62 @@ EOF
     # Approval and commit
     infoln "🏛️  Starting Democratic Approval Process..."
     
-    export CORE_PEER_LOCALMSPID="PoliticalPartyMSP"
-    export CORE_PEER_ADDRESS=peer0.politicalparty.evoting.com:7051
-    export CORE_PEER_TLS_ROOTCERT_FILE=${NETWORK_DIR}/../compose/organizations/peerOrganizations/politicalparty.evoting.com/peers/peer0.politicalparty.evoting.com/tls/ca.crt
-    export CORE_PEER_MSPCONFIGPATH=${NETWORK_DIR}/../compose/organizations/peerOrganizations/politicalparty.evoting.com/users/Admin@politicalparty.evoting.com/msp
+    export CORE_PEER_LOCALMSPID="HospitalApolloMSP"
+    export CORE_PEER_ADDRESS=peer0.hospitalapollo.healthcare.com:7051
+    export CORE_PEER_TLS_ROOTCERT_FILE=${NETWORK_DIR}/../compose/organizations/peerOrganizations/hospitalapollo.healthcare.com/peers/peer0.hospitalapollo.healthcare.com/tls/ca.crt
+    export CORE_PEER_MSPCONFIGPATH=${NETWORK_DIR}/../compose/organizations/peerOrganizations/hospitalapollo.healthcare.com/users/Admin@hospitalapollo.healthcare.com/msp
     
     peer lifecycle chaincode approveformyorg \
         -o orderer1.healthregistry.healthcare.com:7050 \
         --ordererTLSHostnameOverride orderer1.healthregistry.healthcare.com \
         --tls \
-        --cafile ${NETWORK_DIR}/../compose/organizations/ordererOrganizations/electioncommission.evoting.com/orderers/orderer1.healthregistry.healthcare.com/tls/ca.crt \
+        --cafile ${NETWORK_DIR}/../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/orderers/orderer1.healthregistry.healthcare.com/tls/ca.crt \
         --channelID $CHANNEL_NAME \
         --name $CHAINCODE_NAME \
         --version $CHAINCODE_VERSION \
         --package-id $PACKAGE_ID \
         --sequence $SEQUENCE\
-        --signature-policy "AND('PoliticalPartyMSP.peer','AuditAuthorityMSP.peer')" \
-        --collections-config ${NETWORK_DIR}/../chaincode/evoting/collections_config.json
+        --signature-policy "AND('HospitalApolloMSP.peer','AuditOrgMSP.peer')" \
+        --collections-config ${NETWORK_DIR}/../chaincode/healthcare/collections_config.json
     
-    [ $? -eq 0 ] && infoln "✅ Political Party approved" || { errorln "❌ Political Party approval failed"; return 1; }
+    [ $? -eq 0 ] && infoln "✅ Hospital Apollo approved" || { errorln "❌ Hospital Apollo approval failed"; return 1; }
     
-    export CORE_PEER_LOCALMSPID="AuditAuthorityMSP"
-    export CORE_PEER_ADDRESS=peer0.auditauthority.evoting.com:9051
-    export CORE_PEER_TLS_ROOTCERT_FILE=${NETWORK_DIR}/../compose/organizations/peerOrganizations/auditauthority.evoting.com/peers/peer0.auditauthority.evoting.com/tls/ca.crt
-    export CORE_PEER_MSPCONFIGPATH=${NETWORK_DIR}/../compose/organizations/peerOrganizations/auditauthority.evoting.com/users/Admin@auditauthority.evoting.com/msp
+    export CORE_PEER_LOCALMSPID="AuditOrgMSP"
+    export CORE_PEER_ADDRESS=peer0.auditorg.healthcare.com:9051
+    export CORE_PEER_TLS_ROOTCERT_FILE=${NETWORK_DIR}/../compose/organizations/peerOrganizations/auditorg.healthcare.com/peers/peer0.auditorg.healthcare.com/tls/ca.crt
+    export CORE_PEER_MSPCONFIGPATH=${NETWORK_DIR}/../compose/organizations/peerOrganizations/auditorg.healthcare.com/users/Admin@auditorg.healthcare.com/msp
     
     peer lifecycle chaincode approveformyorg \
         -o orderer1.healthregistry.healthcare.com:7050 \
         --ordererTLSHostnameOverride orderer1.healthregistry.healthcare.com \
         --tls \
-        --cafile ${NETWORK_DIR}/../compose/organizations/ordererOrganizations/electioncommission.evoting.com/orderers/orderer1.healthregistry.healthcare.com/tls/ca.crt \
+        --cafile ${NETWORK_DIR}/../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/orderers/orderer1.healthregistry.healthcare.com/tls/ca.crt \
         --channelID $CHANNEL_NAME \
         --name $CHAINCODE_NAME \
         --version $CHAINCODE_VERSION \
         --package-id $PACKAGE_ID \
         --sequence $SEQUENCE\
-        --signature-policy "AND('PoliticalPartyMSP.peer','AuditAuthorityMSP.peer')" \
-        --collections-config ${NETWORK_DIR}/../chaincode/evoting/collections_config.json
+        --signature-policy "AND('HospitalApolloMSP.peer','AuditOrgMSP.peer')" \
+        --collections-config ${NETWORK_DIR}/../chaincode/healthcare/collections_config.json
 
     
-    [ $? -eq 0 ] && infoln "✅ Audit Authority approved" || { errorln "❌ Audit Authority approval failed"; return 1; }
+    [ $? -eq 0 ] && infoln "✅ Audit Org approved" || { errorln "❌ Audit Org approval failed"; return 1; }
     
     peer lifecycle chaincode commit \
         -o orderer1.healthregistry.healthcare.com:7050 \
         --ordererTLSHostnameOverride orderer1.healthregistry.healthcare.com \
         --tls \
-        --cafile ${NETWORK_DIR}/../compose/organizations/ordererOrganizations/electioncommission.evoting.com/orderers/orderer1.healthregistry.healthcare.com/tls/ca.crt \
+        --cafile ${NETWORK_DIR}/../compose/organizations/ordererOrganizations/healthregistry.healthcare.com/orderers/orderer1.healthregistry.healthcare.com/tls/ca.crt \
         --channelID $CHANNEL_NAME \
         --name $CHAINCODE_NAME \
         --version $CHAINCODE_VERSION \
         --sequence $SEQUENCE \
-        --signature-policy "AND('PoliticalPartyMSP.peer','AuditAuthorityMSP.peer')" \
-        --collections-config ${NETWORK_DIR}/../chaincode/evoting/collections_config.json \
-        --peerAddresses peer0.politicalparty.evoting.com:7051 \
-        --tlsRootCertFiles ${NETWORK_DIR}/../compose/organizations/peerOrganizations/politicalparty.evoting.com/peers/peer0.politicalparty.evoting.com/tls/ca.crt \
-        --peerAddresses peer0.auditauthority.evoting.com:9051 \
-        --tlsRootCertFiles ${NETWORK_DIR}/../compose/organizations/peerOrganizations/auditauthority.evoting.com/peers/peer0.auditauthority.evoting.com/tls/ca.crt
+        --signature-policy "AND('HospitalApolloMSP.peer','AuditOrgMSP.peer')" \
+        --collections-config ${NETWORK_DIR}/../chaincode/healthcare/collections_config.json \
+        --peerAddresses peer0.hospitalapollo.healthcare.com:7051 \
+        --tlsRootCertFiles ${NETWORK_DIR}/../compose/organizations/peerOrganizations/hospitalapollo.healthcare.com/peers/peer0.hospitalapollo.healthcare.com/tls/ca.crt \
+        --peerAddresses peer0.auditorg.healthcare.com:9051 \
+        --tlsRootCertFiles ${NETWORK_DIR}/../compose/organizations/peerOrganizations/auditorg.healthcare.com/peers/peer0.auditorg.healthcare.com/tls/ca.crt
 
     
     if [ $? -ne 0 ]; then
@@ -1033,19 +1033,19 @@ EOF
     fi
 
     infoln "🎉🎉🎉 EXTERNAL CHAINCODE DEPLOYED! 🎉🎉🎉"
-    infoln "✅ evoting-contract v1.0 deployed as external service!"
+    infoln "✅ healthcare-contract v1.0 deployed as external service!"
 }
 # Start Redis
 function startRedis() {
   infoln "Starting Redis cache..."
   
-  docker-compose -f ../compose/${COMPOSE_FILE_NETWORK} up -d redis.evoting.com 2>&1
+  docker-compose -f ../compose/${COMPOSE_FILE_NETWORK} up -d redis.healthcare.com 2>&1
   
   # Wait for Redis to be ready
   local retries=0
   local max_retries=30
   
-  while ! docker exec redis.evoting.com redis-cli ping > /dev/null 2>&1; do
+  while ! docker exec redis.healthcare.com redis-cli ping > /dev/null 2>&1; do
     retries=$((retries + 1))
     if [ $retries -ge $max_retries ]; then
       errorln "Redis failed to start"
@@ -1064,16 +1064,16 @@ function printHelp() {
     echo "Usage: network-up.sh [flags]"
     echo ""
     echo "Modes:"
-    echo "  up - Start the E-Voting network"
-    echo "  down - Stop the E-Voting network" 
-    echo "  restart - Restart the E-Voting network"
+    echo "  up - Start the Healthcare network"
+    echo "  down - Stop the Healthcare network" 
+    echo "  restart - Restart the Healthcare network"
     echo "  verify - Verify network status"
     echo "  createChannel - Create and join channel (network must be running)"
     echo " setAnchorPeers - Set anchor peers for service discovery"
-    echo "  deployChaincode - Deploy evoting-contract chaincode"
+    echo "  deployChaincode - Deploy healthcare-contract chaincode"
     echo ""
     echo "Flags:"
-    echo "  -c - Channel name (default: evoting-channel)"
+    echo "  -c - Channel name (default: healthcare-channel)"
     echo "  -s - State database: couchdb (default: couchdb)"
     echo "  -clean - Remove certificates when stopping network"
     echo "  -v - Remove Docker volumes only (preserve certificates)"
@@ -1142,14 +1142,14 @@ fi
 parseCommandLineArgs $@
 
 if [ "$MODE" == "up" ]; then
-    infoln "🚀 Starting E-Voting network with 3 organizations and CouchDB"
+    infoln "🚀 Starting Healthcare network with 3 organizations and CouchDB"
     networkUp
     verifyNetwork
 elif [ "$MODE" == "down" ]; then
-    infoln "🛑 Stopping E-Voting network"
+    infoln "🛑 Stopping Healthcare network"
     networkDown
 elif [ "$MODE" == "restart" ]; then
-    infoln "🔄 Restarting E-Voting network"
+    infoln "🔄 Restarting Healthcare network"
     networkDown
     networkUp
     verifyNetwork

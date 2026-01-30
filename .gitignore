@@ -4,5 +4,6 @@ Blockchain/compose/organizations
 Blockchain/organizations/fabric-ca
 *.log
 *.tar.gz
+*.block
 Blockchain/network/healthcare-contract.tar.gz
-Blockchain/network/channel-artifacts
+Blockchain/network/channel-artifacts/
